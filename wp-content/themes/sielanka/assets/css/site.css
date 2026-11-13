@@ -320,6 +320,46 @@ p{margin:0 0 14px}
 .tresc-strony th{background:var(--szary);color:var(--ziel)}
 @media (max-width:760px){.tresc-strony table{display:block;overflow-x:auto}.podstrona{padding:36px 0 24px}}
 
+/* pytania na stronie głównej */
+.faq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px;margin:0}
+.faq>div{padding:18px 0 16px;border-top:1px solid var(--linia)}
+.faq dt{font:700 19px/1.3 "Lora","Lora fb",Georgia,serif;color:var(--ziel);margin:0 0 6px}
+.faq dd{margin:0;color:var(--tekst2)}
+.z-linia::before{content:"";position:absolute;top:0;left:50%;width:min(1200px,100% - 32px);transform:translateX(-50%);border-top:1px solid var(--linia)}
+
+/* poradnik */
+.okruszki{font-size:15px;margin:0 0 14px;color:var(--tekst2)}
+.okruszki a{font-weight:600;text-decoration:none}
+.art-lead{font-size:19px;margin:0 0 28px}
+.art-lista{list-style:none;padding:0!important;margin:0 0 8px;display:grid;gap:14px}
+.art-lista a{display:block;padding:18px 20px;background:#fff;border:1px solid var(--linia);border-left:4px solid var(--akc);border-radius:var(--r);color:var(--tekst);text-decoration:none;transition:border-color .18s}
+.art-lista a:hover{border-color:var(--akc)}
+.art-tyt{display:block;font:700 21px/1.25 "Lora","Lora fb",Georgia,serif;color:var(--ziel)}
+.art-zaj{display:block;margin-top:6px;color:var(--tekst2)}
+.art-dalej{display:block;margin-top:8px;color:var(--akc);font-weight:600}
+.art-data{font-size:14.5px;margin:-8px 0 20px}
+.art-foto{margin:0 0 26px}
+.art-foto img{width:100%;border-radius:var(--r)}
+.artykul .tresc-strony>p:first-child{font-size:19px;color:var(--tekst)}
+.tresc-strony .tabela{display:table;font-size:17px;border:1px solid var(--linia)}
+.tresc-strony .tabela th,.tresc-strony .tabela td{border:0;border-top:1px solid var(--linia);padding:9px 16px}
+.tresc-strony .tabela th{background:var(--ziel);color:#fff}
+.art-cta{background:var(--szary);border-left:4px solid var(--akc);border-radius:var(--r);padding:22px 24px;margin:36px 0 30px}
+.art-cta p{color:var(--tekst)}
+.art-cta-tyt{font:700 23px/1.2 "Lora","Lora fb",Georgia,serif;color:var(--ziel);margin-bottom:8px}
+.art-cta-przyc{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 0}
+.art-inne-tyt{font-weight:700;color:var(--ziel);margin-bottom:6px}
+.art-inne ul{margin:0 0 20px}
+.art-inne li{padding:3px 0}
+@media (max-width:760px){
+  .faq{grid-template-columns:minmax(0,1fr)}
+  .faq dt{font-size:18px}
+  .art-lead,.artykul .tresc-strony>p:first-child{font-size:18px}
+  .art-tyt{font-size:19px}
+  .art-cta{padding:18px 18px}
+  .art-cta-przyc .przycisk{flex:1 1 auto}
+}
+
 /* szybkość: sekcje poniżej pierwszego ekranu renderowane i wczytywane dopiero przy przewijaniu (wysokości jak po wyrenderowaniu) */
 #domek{content-visibility:auto;contain-intrinsic-size:auto 851px}
 #ogrodek{content-visibility:auto;contain-intrinsic-size:auto 759px}
