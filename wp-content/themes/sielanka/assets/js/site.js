@@ -124,16 +124,22 @@
 
   /* powiększanie zdjęć (lightbox): kliknięcie / stuknięcie zdjęcia w pasach i galeriach; okno budowane dopiero przy pierwszym otwarciu.
      Przeciągnięcie pasa nie otwiera (ciagnij() blokuje wtedy kliknięcie). */
-  var LB = null, lbLista = [], lbIx = 0, lbPowrot = null;
+  var LB = null, lbLista = [], lbIx = 0, lbPowrot = null, lbKier = 1;
   var SEL_ZDJ = '.tor-poziomy .kafel, .galeria .tor > img';
   function lbElementy(el) {
     var tor = el.closest('.tor-poziomy, .tor');
     return [].slice.call(tor.querySelectorAll(tor.classList.contains('tor') ? ':scope > img' : ':scope > .kafel'));
   }
+  /* największy potrzebny plik: szerokość okna podglądu x gęstość ekranu (srcset + duże warianty data-duze, maks. 2560 px) */
   function lbDane(el) {
-    var im = el.tagName === 'IMG' ? el : el.querySelector('img'), fc = el.tagName === 'IMG' ? null : el.querySelector('figcaption'), big = im.currentSrc || im.src, wmax = 0;
-    (im.getAttribute('srcset') || '').split(',').forEach(function (c) { var cz = c.trim().split(/\s+/), w = parseInt(cz[1], 10) || 0; if (cz[0] && w > wmax) { wmax = w; big = cz[0]; } });
-    return { maly: im.currentSrc || im.src, duzy: big, alt: im.alt || '', podpis: fc ? fc.textContent : (im.alt || ''), w: im.getAttribute('width'), h: im.getAttribute('height') };
+    var im = el.tagName === 'IMG' ? el : el.querySelector('img'), fc = el.tagName === 'IMG' ? null : el.querySelector('figcaption'), big = im.currentSrc || im.src;
+    var ar = (+im.getAttribute('width') || 4) / (+im.getAttribute('height') || 3);
+    var cel = Math.min(2560, Math.min(window.innerWidth - 32, (window.innerHeight - 140) * ar, 1400) * (window.devicePixelRatio || 1));
+    var lista = [];
+    ((im.getAttribute('srcset') || '') + ',' + (im.getAttribute('data-duze') || '')).split(',').forEach(function (c) { var cz = c.trim().split(/\s+/), w = parseInt(cz[1], 10) || 0; if (cz[0] && w) lista.push([w, cz[0]]); });
+    lista.sort(function (x, y) { return x[0] - y[0]; });
+    for (var i = 0; i < lista.length; i++) { big = lista[i][1]; if (lista[i][0] >= cel * 0.9) break; }
+    return { maxw: lista.length ? lista[lista.length - 1][0] : 0, maly: im.currentSrc || im.src, duzy: big, alt: im.alt || '', podpis: fc ? fc.textContent : (im.alt || ''), w: im.getAttribute('width'), h: im.getAttribute('height') };
   }
   function lbZbuduj() {
     LB = d.createElement('div'); LB.className = 'lb'; LB.hidden = true;
@@ -172,14 +178,26 @@
     LB.addEventListener('pointercancel', function () { dx = dy = 0; cel = null; puszczenie(); });
   }
   function lbPokaz(i) {
-    var n = lbLista.length; lbIx = (i + n) % n;
+    var n = lbLista.length; lbKier = i < lbIx ? -1 : 1; lbIx = (i + n) % n;
     var z = lbDane(lbLista[lbIx]), img = LB.querySelector('.lb-img');
     img.src = z.maly; img.alt = z.alt; if (z.w) { img.width = z.w; img.height = z.h; }
+    img.dataset.maxw = z.maxw || +z.w || 0;
+    lbRozmiar();
     if (z.duzy !== z.maly) { var pre = new Image(), ix = lbIx; pre.onload = function () { if (ix === lbIx) img.src = z.duzy; }; pre.src = z.duzy; }
+    if (n > 1) { var nast = lbDane(lbLista[(lbIx + lbKier + n) % n]); if (nast.duzy !== nast.maly) (new Image()).src = nast.duzy; } // z wyprzedzeniem tylko 1 sąsiednie
     LB.querySelector('.lb-tekst').textContent = z.podpis;
     LB.querySelector('.lb-licz').textContent = (lbIx + 1) + ' / ' + n;
     LB.querySelector('.lb-l').hidden = LB.querySelector('.lb-p').hidden = n < 2;
   }
+  /* stały rozmiar zdjęcia w podglądzie (bez skoku przy podmianie miniatury na duży plik) */
+  function lbRozmiar() {
+    if (!LB) return;
+    var img = LB.querySelector('.lb-img'), ar = (+img.getAttribute('width') || 4) / (+img.getAttribute('height') || 3), tel = window.innerWidth <= 760;
+    var w = Math.min(window.innerWidth - (tel ? 16 : 32), (window.innerHeight - (tel ? 180 : 140)) * ar, 1400);
+    if (+img.dataset.maxw) w = Math.min(w, +img.dataset.maxw); // bez powiększania ponad największy plik
+    img.style.width = Math.round(w) + 'px';
+  }
+  window.addEventListener('resize', function () { if (LB && !LB.hidden) lbRozmiar(); });
   function lbOtworz(el) {
     if (!LB) lbZbuduj();
     lbLista = lbElementy(el); lbPowrot = d.activeElement && d.activeElement !== d.body ? d.activeElement : el.closest('.tor-poziomy, .tor');
