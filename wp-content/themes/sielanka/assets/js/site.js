@@ -88,7 +88,7 @@
      Strzałki (komputer) przesuwają o jedno zdjęcie; na początku „wstecz”, na końcu „dalej” nieaktywne. */
   [].forEach.call(d.querySelectorAll('.tor-poziomy'), function (tor) {
     var kafle = tor.querySelectorAll('.kafel'), n = kafle.length;
-    [].forEach.call(kafle, function (k, i) { var s = d.createElement('span'); s.className = 'licznik'; s.textContent = (i + 1) + ' / ' + n; k.appendChild(s); });
+    [].forEach.call(kafle, function (k, i) { var s = d.createElement('span'); s.className = 'licznik'; s.textContent = (i + 1) + ' / ' + n; (k.querySelector('.kafel-foto') || k).appendChild(s); });
     var nav = d.createElement('div'); nav.className = 'tor-nav';
     nav.innerHTML = '<button type="button" class="strz-t" aria-label="Poprzednie zdjęcie">' + strzL + '</button><button type="button" class="strz-t" aria-label="Następne zdjęcie">' + strzP + '</button>';
     tor.parentNode.insertBefore(nav, tor);
