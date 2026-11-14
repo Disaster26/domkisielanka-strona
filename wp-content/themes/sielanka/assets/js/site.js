@@ -123,7 +123,15 @@
       if (i !== start + akt) wyrownaj();
       else { var x = srodek(tor, tor.children[i]); if (Math.abs(x - tor.scrollLeft) > 2) tor.scrollTo({ left: x, behavior: plynnie() }); } // dociągnięcie, gdy przeglądarka nie dosnapowała
     }
-    wyrownaj();
+    /* podpis i licznik tylko na kaflach widocznych w całości (bez uciętych podpisów na brzegach) */
+    var rf = 0;
+    function czesci() {
+      rf = 0; var a = tor.getBoundingClientRect();
+      [].forEach.call(tor.children, function (k) { var r = k.getBoundingClientRect(); k.classList.toggle('czesc', r.left < a.left - 1 || r.right > a.right + 1); });
+    }
+    tor.addEventListener('scroll', function () { if (!rf) rf = requestAnimationFrame(czesci); }, { passive: true });
+    window.addEventListener('resize', function () { if (!rf) rf = requestAnimationFrame(czesci); });
+    wyrownaj(); czesci();
     ['pointerdown', 'touchstart', 'wheel', 'keydown'].forEach(function (ev) { tor.addEventListener(ev, function () { ruszony = true; }, { passive: true }); });
     nav.addEventListener('click', function () { ruszony = true; });
     b[0].addEventListener('click', function () { idz(-1); });
@@ -141,7 +149,7 @@
     window.addEventListener('resize', function () { if (window.innerWidth !== sz0) { sz0 = window.innerWidth; wyrownaj(); } });
     /* sekcje poniżej ekranu mają content-visibility: auto - wyrównanie jeszcze raz, gdy pas się pojawi */
     if ('IntersectionObserver' in window) {
-      var io2 = new IntersectionObserver(function (en) { if (en[0].isIntersecting) { io2.disconnect(); wyrownaj(); } }, { rootMargin: '200px 0px' });
+      var io2 = new IntersectionObserver(function (en) { if (en[0].isIntersecting) { io2.disconnect(); wyrownaj(); czesci(); } }, { rootMargin: '200px 0px' });
       io2.observe(tor);
     }
   });
