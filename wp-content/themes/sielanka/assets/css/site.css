@@ -368,6 +368,27 @@ p{margin:0 0 14px}
   .art-cta-przyc .przycisk{flex:1 1 auto}
 }
 
+/* powiększanie zdjęć (lightbox) */
+@media (hover:hover){.kafel,.galeria .tor>img{cursor:zoom-in}.tor.ciagnie>img,.tor-poziomy.ciagnie .kafel{cursor:grabbing}}
+html.lb-blok{overflow:hidden}
+.lb{position:fixed;inset:0;z-index:1000;background:rgba(10,14,10,.97);display:flex;align-items:center;justify-content:center;padding:56px 16px 16px;opacity:0;transition:opacity .18s;touch-action:none;overscroll-behavior:contain}
+.lb[hidden]{display:none}
+.lb.otw{opacity:1}
+.lb-fig{margin:0;display:flex;flex-direction:column;align-items:center;max-width:100%;max-height:100%}
+.lb-img{display:block;width:auto;height:auto;max-width:min(100%,1400px);max-height:calc(100vh - 140px);max-height:calc(100dvh - 140px);object-fit:contain;border-radius:6px;transform:scale(.97);transition:transform .18s;user-select:none;-webkit-user-drag:none}
+.lb.otw .lb-img{transform:none}
+.lb-pod{display:flex;gap:14px;align-items:baseline;justify-content:center;color:#fff;font-weight:600;font-size:16px;padding-top:12px;text-align:center}
+.lb-licz{font-size:14px;opacity:.75;white-space:nowrap}
+.lb-b{position:absolute;width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;cursor:pointer;transition:background .15s}
+.lb-b svg{width:18px;height:18px}
+.lb-b:hover{background:rgba(255,255,255,.28)}
+.lb-b:focus-visible{outline:3px solid #7DC56F;outline-offset:2px}
+.lb-x{top:max(10px,env(safe-area-inset-top));right:12px}
+.lb-l{left:16px;top:50%;margin-top:-24px}.lb-p{right:16px;top:50%;margin-top:-24px}
+.lb-b[hidden]{display:none}
+@media (max-width:760px){.lb{padding:56px 8px 76px}.lb-img{max-height:calc(100dvh - 180px)}.lb-l,.lb-p{top:auto;bottom:max(14px,env(safe-area-inset-bottom));margin:0}.lb-l{left:calc(50% - 60px)}.lb-p{right:calc(50% - 60px)}}
+@media (prefers-reduced-motion:reduce){.lb,.lb-img{transition:none}.lb-img{transform:none}}
+
 /* szybkość: sekcje poniżej pierwszego ekranu renderowane i wczytywane dopiero przy przewijaniu (wysokości jak po wyrenderowaniu) */
 #domek{content-visibility:auto;contain-intrinsic-size:auto 851px}
 #ogrodek{content-visibility:auto;contain-intrinsic-size:auto 759px}
