@@ -114,15 +114,15 @@ p{margin:0 0 14px}
 
 /* tory poziome (ogródek, okolica) */
 /* pasy zdjęć: własny szeroki kontener (prawie całe okno, równe marginesy), jednakowe kafle 4:3 wypełniające pas:
-   od 1700 px 5, od 1280 px 4, od 1100 px 3, tablet 2 + kawałek, telefon 1 + kawałek */
+   od 1700 px 4, od 1280 px 3, od 1100 px 2 + kawałek, tablet 1 + duży kawałek, telefon 1 + kawałek */
 .tor-poziomy,.tor-nav{--pas:min(1840px,100% - 2 * clamp(16px,3vw,56px))}
 .tor-poziomy{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;cursor:grab;width:var(--pas);margin:0 auto}
 .tor-poziomy::-webkit-scrollbar{display:none}
-.kafel{flex:1 0 calc((100% - 32px) / 3);margin:0;scroll-snap-align:start;position:relative;border-radius:var(--r);overflow:hidden}
+.kafel{flex:1 0 calc((100% - 32px) / 2.3);margin:0;scroll-snap-align:start;position:relative;border-radius:var(--r);overflow:hidden}
 .kafel img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;object-position:50% 50%;user-select:none;-webkit-user-drag:none;pointer-events:none}
-@media (min-width:1280px){.kafel{flex-basis:calc((100% - 48px) / 4)}}
-@media (min-width:1700px){.kafel{flex-basis:calc((100% - 64px) / 5)}}
-@media (max-width:1099px){.kafel{flex-basis:calc((100% - 32px) / 2.3)}}
+@media (min-width:1280px){.kafel{flex-basis:calc((100% - 32px) / 3)}}
+@media (min-width:1700px){.kafel{flex-basis:calc((100% - 48px) / 4)}}
+@media (max-width:1099px){.kafel{flex-basis:calc((100% - 16px) / 1.5)}}
 .kafel figcaption{position:absolute;left:0;right:0;bottom:0;padding:28px 60px 12px 14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:linear-gradient(0deg,rgba(20,32,18,.75),rgba(20,32,18,0));color:#fff;font-weight:600;font-size:16px}
 
 .tor-nav{width:var(--pas);margin:-18px auto 14px;display:flex;justify-content:flex-end;gap:10px}
@@ -374,7 +374,7 @@ p{margin:0 0 14px}
 #dzieci{content-visibility:auto;contain-intrinsic-size:auto 605px}
 #cennik{content-visibility:auto;contain-intrinsic-size:auto 1032px}
 #termin{content-visibility:auto;contain-intrinsic-size:auto 1194px}
-.tor-okolica{content-visibility:auto;contain-intrinsic-size:auto 270px}
+.tor-okolica{content-visibility:auto;contain-intrinsic-size:auto 340px}
 @media (max-width:760px){
   #domek{contain-intrinsic-size:auto 1100px}
   #ogrodek{contain-intrinsic-size:auto 560px}
