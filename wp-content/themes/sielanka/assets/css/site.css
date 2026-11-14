@@ -392,6 +392,43 @@ html.lb-blok{overflow:hidden}
 @media (max-width:760px){.lb{padding:56px 8px 76px}.lb-img{max-height:calc(100dvh - 180px)}.lb-l,.lb-p{top:auto;bottom:max(14px,env(safe-area-inset-bottom));margin:0}.lb-l{left:calc(50% - 60px)}.lb-p{right:calc(50% - 60px)}}
 @media (prefers-reduced-motion:reduce){.lb,.lb-img{transition:none}.lb-img{transform:none}}
 
+/* podstrony i odnośniki „Więcej o ...” */
+.link-wiecej{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:var(--akc);text-decoration:none;padding:8px 0}
+.link-wiecej svg{width:14px;height:14px;transition:transform .18s}
+.link-wiecej:hover{text-decoration:underline;text-underline-offset:4px}
+.link-wiecej:hover svg{transform:translateX(3px)}
+.ciemna .link-wiecej{color:#fff}
+.pas-wiecej{width:min(1200px,100% - 32px);margin:22px auto 0}
+.domek-przyc{display:flex;flex-wrap:wrap;align-items:center;gap:10px 24px;margin:4px 0 0}
+.pod-glowa{padding:34px 0 28px}
+.pod-glowa h1{font-size:clamp(32px,4vw,48px);max-width:900px}
+.okruszki ol{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-wrap:wrap;gap:4px 8px;font-size:15px;color:var(--tekst2)}
+.okruszki li+li::before{content:"/";margin-right:8px;color:#9AA59A}
+.okruszki a{color:var(--tekst2);text-decoration:none}
+.okruszki a:hover{color:var(--akc);text-decoration:underline}
+.pod .sekcja:first-of-type,.pod-glowa+.sekcja{padding-top:44px}
+.pod-glowa+.ciemna{margin-top:calc(min(540px,36vw)/4 + 24px)}
+.pod-tekst{padding:56px 0 64px}
+.pod-tekst-gora{padding:28px 0 8px}
+.tekst-art{max-width:780px}
+.tekst-art h2{font-size:clamp(23px,2.2vw,28px);margin:34px 0 10px}
+.tekst-art h2:first-child{margin-top:0}
+.tekst-art p{margin:0 0 14px;color:var(--tekst2);font-size:18px}
+.pod-dalej{padding:56px 0 64px}
+.pod-dalej-in{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:40px;align-items:start}
+.pod-dalej h2{font-size:26px;margin-bottom:14px}
+.pod-linki,.pod-art{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:10px}
+.pod-linki a{display:inline-block;padding:9px 16px;border:1px solid var(--linia);border-radius:999px;background:#fff;color:var(--ziel);font-weight:600;text-decoration:none}
+.pod-linki a:hover{border-color:var(--akc);color:var(--akc)}
+.pod-art-tyt{margin:24px 0 8px;font-weight:700;color:var(--ziel)}
+.pod-art{flex-direction:column;gap:6px}
+.pod-art a{color:var(--akc);font-weight:600}
+.pod-cta{background:#fff;border:1px solid var(--linia);border-radius:10px;padding:22px 24px}
+.pod-cta-tyt{font-family:"Lora","Lora fb",Georgia,serif;font-size:22px;font-weight:700;color:var(--ziel);margin:0 0 6px}
+.pod-cta p{margin:0 0 14px;color:var(--tekst2)}
+.pod-cta p:last-child{margin:0}
+@media (max-width:760px){.pod-glowa{padding-top:22px}.pod-dalej-in{grid-template-columns:minmax(0,1fr);gap:28px}.pod-tekst{padding:40px 0 44px}.tekst-art p{font-size:17px}.pas-wiecej{margin-top:14px}}
+
 /* szybkość: sekcje poniżej pierwszego ekranu renderowane i wczytywane dopiero przy przewijaniu (wysokości jak po wyrenderowaniu) */
 #domek{content-visibility:auto;contain-intrinsic-size:auto 851px}
 #ogrodek{content-visibility:auto;contain-intrinsic-size:auto 707px}
