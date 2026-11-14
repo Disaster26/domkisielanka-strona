@@ -117,7 +117,7 @@
       if (e.key === 'ArrowRight') { e.preventDefault(); idz(1); }
       if (e.key === 'ArrowLeft') { e.preventDefault(); idz(-1); }
     });
-    function stan() { b[0].disabled = tor.scrollLeft < 4; b[1].disabled = tor.scrollLeft + tor.clientWidth > tor.scrollWidth - 4; }
+    function stan() { b[0].disabled = tor.scrollLeft < 4; b[1].disabled = tor.scrollLeft + tor.clientWidth > tor.scrollWidth - 4; nav.classList.toggle('brak', tor.scrollWidth <= tor.clientWidth + 4); } // wszystko się mieści: strzałki ukryte (bez przesunięcia układu)
     tor.addEventListener('scroll', stan, { passive: true }); window.addEventListener('resize', stan); stan();
     if ('IntersectionObserver' in window) { var io2 = new IntersectionObserver(function (en) { if (en[0].isIntersecting) { io2.disconnect(); stan(); } }); io2.observe(tor); }
   });
