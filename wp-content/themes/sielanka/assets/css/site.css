@@ -113,17 +113,25 @@ p{margin:0 0 14px}
 @media (hover:none){.strz{display:none}}
 
 /* tory poziome (ogródek, okolica) */
-/* pasy zdjęć: własny szeroki kontener (prawie całe okno, równe marginesy), jednakowe kafle 4:3 wypełniające pas:
+/* pasy zdjęć i kart: własny szeroki kontener (prawie całe okno, równe marginesy), jednakowe karty:
    od 1700 px 4, od 1280 px 3, od 1100 px 2 + kawałek, tablet 1 + duży kawałek, telefon 1 + kawałek */
-.tor-poziomy,.tor-nav{--pas:min(1840px,100% - 2 * clamp(16px,3vw,56px))}
-.tor-poziomy{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;cursor:grab;width:var(--pas);margin:0 auto}
+.tor-poziomy,.tor-nav{--pas:min(1840px,100% - 2 * clamp(16px,3vw,56px));--odst:24px}
+.tor-poziomy{display:flex;gap:var(--odst);overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;cursor:grab;width:var(--pas);margin:0 auto;padding-bottom:4px}
 .tor-poziomy::-webkit-scrollbar{display:none}
-.kafel{flex:1 0 calc((100% - 32px) / 2.3);margin:0;scroll-snap-align:start;position:relative;border-radius:var(--r);overflow:hidden}
+.kafel,.tor-poziomy>.karta{flex:1 0 calc((100% - var(--odst) * 2) / 2.3);margin:0;scroll-snap-align:start;min-width:0}
+@media (min-width:1280px){.kafel,.tor-poziomy>.karta{flex-basis:calc((100% - var(--odst) * 2) / 3)}}
+@media (min-width:1700px){.kafel,.tor-poziomy>.karta{flex-basis:calc((100% - var(--odst) * 3) / 4)}}
+@media (max-width:1099px){.tor-poziomy,.tor-nav{--odst:16px}.kafel,.tor-poziomy>.karta{flex-basis:calc((100% - var(--odst)) / 1.5)}}
+.kafel-foto{display:block;position:relative;overflow:hidden;border-radius:10px;background:#dfe5e0}
 .kafel img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;object-position:50% 50%;user-select:none;-webkit-user-drag:none;pointer-events:none}
-@media (min-width:1280px){.kafel{flex-basis:calc((100% - 32px) / 3)}}
-@media (min-width:1700px){.kafel{flex-basis:calc((100% - 48px) / 4)}}
-@media (max-width:1099px){.kafel{flex-basis:calc((100% - 16px) / 1.5)}}
-.kafel figcaption{position:absolute;left:0;right:0;bottom:0;padding:28px 60px 12px 14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:linear-gradient(0deg,rgba(20,32,18,.75),rgba(20,32,18,0));color:#fff;font-weight:600;font-size:16px}
+.kafel figcaption{padding:12px 2px 0;color:var(--tekst);font-weight:600;font-size:16px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ciemna .kafel figcaption{color:rgba(255,255,255,.92)}
+.kafel .licznik,.karta .licznik{right:10px;bottom:10px;font-size:12px;font-weight:600;padding:2px 8px;background:rgba(20,32,18,.5);letter-spacing:.02em}
+.tor-karty,.karty.tor-poziomy{cursor:auto}
+@media (hover:hover){
+  .kafel-foto img,.karta .tor>img{transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+  .kafel:hover .kafel-foto img,.karta .tor>img:hover{transform:scale(1.035)}
+}
 
 .tor-nav{width:var(--pas);margin:-18px auto 14px;display:flex;justify-content:flex-end;gap:10px}
 .tor-nav.brak{visibility:hidden}
@@ -136,8 +144,7 @@ p{margin:0 0 14px}
 @media (hover:none),(max-width:760px){.tor-nav{display:none}}
 
 /* karty dzieci */
-.karty{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
-.karta{background:#fff;border:1px solid var(--linia);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.karta{background:#fff;border:1px solid var(--linia);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
 .karta-tresc{padding:16px 18px 20px}
 .karta-tresc h3{font-size:20px;margin-bottom:6px}
 .karta-tresc p{margin:0;color:var(--tekst2);font-size:16px}
@@ -207,7 +214,6 @@ p{margin:0 0 14px}
 @media (max-width:1180px){
   .menu{gap:18px}
   .nag-tel span{display:none}
-  .karty{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-height:820px) and (min-width:761px){
   .mh-nazwa{font-size:clamp(28px,2.8vw,42px)}
@@ -254,11 +260,8 @@ p{margin:0 0 14px}
   .glowa p{font-size:17px}
   .srodek{text-align:left}
   .odleglosci{margin-left:0}
-  .karty{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;scrollbar-width:none;overscroll-behavior-x:contain}
-  .karty::-webkit-scrollbar{display:none}
-  .karta{flex:0 0 86%;scroll-snap-align:start}
-  .tor-poziomy{gap:10px}
-  .kafel{flex-basis:86%}
+  .tor-poziomy,.tor-nav{--odst:12px}
+  .kafel,.tor-poziomy>.karta{flex-basis:86%}
   .odleglosci{flex-direction:column;align-items:flex-start;gap:8px;max-width:330px}
   .tabela td,.tabela th{padding:9px 14px}
   .zasady{padding:22px 20px}
@@ -391,16 +394,16 @@ html.lb-blok{overflow:hidden}
 
 /* szybkość: sekcje poniżej pierwszego ekranu renderowane i wczytywane dopiero przy przewijaniu (wysokości jak po wyrenderowaniu) */
 #domek{content-visibility:auto;contain-intrinsic-size:auto 851px}
-#ogrodek{content-visibility:auto;contain-intrinsic-size:auto 759px}
-#dzieci{content-visibility:auto;contain-intrinsic-size:auto 605px}
+#ogrodek{content-visibility:auto;contain-intrinsic-size:auto 707px}
+#dzieci{content-visibility:auto;contain-intrinsic-size:auto 765px}
 #cennik{content-visibility:auto;contain-intrinsic-size:auto 1032px}
 #termin{content-visibility:auto;contain-intrinsic-size:auto 1194px}
 .tor-okolica{content-visibility:auto;contain-intrinsic-size:auto 340px}
 @media (max-width:760px){
   #domek{contain-intrinsic-size:auto 1100px}
-  #ogrodek{contain-intrinsic-size:auto 560px}
-  #dzieci{contain-intrinsic-size:auto 625px}
+  #ogrodek{contain-intrinsic-size:auto 580px}
+  #dzieci{contain-intrinsic-size:auto 741px}
   #cennik{contain-intrinsic-size:auto 1530px}
   #termin{contain-intrinsic-size:auto 1477px}
-  .tor-okolica{contain-intrinsic-size:auto 231px}
+  .tor-okolica{contain-intrinsic-size:auto 235px}
 }
