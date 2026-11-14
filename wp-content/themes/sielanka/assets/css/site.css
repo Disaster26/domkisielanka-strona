@@ -113,19 +113,13 @@ p{margin:0 0 14px}
 @media (hover:none){.strz{display:none}}
 
 /* tory poziome (ogródek, okolica) */
-.tor-poziomy{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:0 max(16px,(100% - 1200px)/2);scroll-padding:0 max(16px,(100% - 1200px)/2);cursor:grab;overscroll-behavior-x:contain}
-/* z JS: pas na całą szerokość okna, aktywne zdjęcie na środku, z obu stron równo wystają sąsiednie (pętla z kopiami) */
-.tor-poziomy.petla{padding:0;scroll-padding:0}
-.tor-poziomy.petla .kafel{scroll-snap-align:center}
-.kafel .licznik{transition:opacity .25s}
-.kafel.czesc figcaption,.kafel.czesc .licznik{opacity:0}
+/* pas w szerokości treści (te same krawędzie co nagłówek), jednakowe kafle 4:3: komputer 3, tablet 2 + kawałek, telefon 1 + kawałek */
+.tor-poziomy{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;cursor:grab;width:min(1200px,100% - 32px);margin:0 auto}
 .tor-poziomy::-webkit-scrollbar{display:none}
-.kafel{flex:0 0 auto;margin:0;scroll-snap-align:start;position:relative;border-radius:var(--r);overflow:hidden}
-/* wszystkie kafle tej samej wielkości (4:3): komputer 3 pełne + równe kawałki po bokach, tablet 1 + kawałki, telefon 1 + paski */
-.kafel{width:calc((100% - 64px) / 3.8);max-width:600px}
+.kafel{flex:0 0 calc((100% - 32px) / 3);margin:0;scroll-snap-align:start;position:relative;border-radius:var(--r);overflow:hidden}
 .kafel img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;object-position:50% 50%;user-select:none;-webkit-user-drag:none;pointer-events:none}
-@media (max-width:1099px){.kafel{width:calc((100% - 32px) / 1.6)}}
-.kafel figcaption{position:absolute;left:0;right:0;bottom:0;padding:28px 60px 12px 14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .25s;background:linear-gradient(0deg,rgba(20,32,18,.75),rgba(20,32,18,0));color:#fff;font-weight:600;font-size:16px}
+@media (max-width:1099px){.kafel{flex-basis:calc((100% - 32px) / 2.3)}}
+.kafel figcaption{position:absolute;left:0;right:0;bottom:0;padding:28px 60px 12px 14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:linear-gradient(0deg,rgba(20,32,18,.75),rgba(20,32,18,0));color:#fff;font-weight:600;font-size:16px}
 
 .tor-nav{width:min(1200px,100% - 32px);margin:-18px auto 14px;display:flex;justify-content:flex-end;gap:10px}
 .strz-t{width:46px;height:46px;border-radius:50%;border:2px solid var(--ziel);background:#fff;color:var(--ziel);display:grid;place-items:center;cursor:pointer;transition:background .18s,color .18s}
@@ -255,11 +249,11 @@ p{margin:0 0 14px}
   .glowa p{font-size:17px}
   .srodek{text-align:left}
   .odleglosci{margin-left:0}
-  .karty{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:14px;margin:0 -16px;padding:0 9vw;scrollbar-width:none}
+  .karty{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;scrollbar-width:none;overscroll-behavior-x:contain}
   .karty::-webkit-scrollbar{display:none}
-  .karta{flex:0 0 82vw;scroll-snap-align:center}
+  .karta{flex:0 0 86%;scroll-snap-align:start}
   .tor-poziomy{gap:10px}
-  .kafel{width:calc(100% - 56px)}
+  .kafel{flex-basis:86%}
   .odleglosci{flex-direction:column;align-items:flex-start;gap:8px;max-width:330px}
   .tabela td,.tabela th{padding:9px 14px}
   .zasady{padding:22px 20px}
@@ -375,12 +369,12 @@ p{margin:0 0 14px}
 #dzieci{content-visibility:auto;contain-intrinsic-size:auto 605px}
 #cennik{content-visibility:auto;contain-intrinsic-size:auto 1032px}
 #termin{content-visibility:auto;contain-intrinsic-size:auto 1194px}
-.tor-okolica{content-visibility:auto;contain-intrinsic-size:auto 390px}
+.tor-okolica{content-visibility:auto;contain-intrinsic-size:auto 292px}
 @media (max-width:760px){
   #domek{contain-intrinsic-size:auto 1100px}
   #ogrodek{contain-intrinsic-size:auto 560px}
   #dzieci{contain-intrinsic-size:auto 625px}
   #cennik{contain-intrinsic-size:auto 1530px}
   #termin{contain-intrinsic-size:auto 1477px}
-  .tor-okolica{contain-intrinsic-size:auto 250px}
+  .tor-okolica{contain-intrinsic-size:auto 231px}
 }

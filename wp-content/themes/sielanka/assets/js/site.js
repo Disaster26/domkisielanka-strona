@@ -23,13 +23,13 @@
   }
   if (linki.length) { window.addEventListener('scroll', aktywna, { passive: true }); aktywna(); }
 
-  /* pomocnicze do galerii: pozycja wyśrodkowania zdjęcia, zdjęcie najbliżej środka, płynność (bez przy reduced-motion) */
+  /* pomocnicze do galerii: płynność (bez przy reduced-motion), pozycja najbliższego zdjęcia (lewa krawędź) */
   function plynnie() { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'; }
-  function srodek(tor, el) { var a = tor.getBoundingClientRect(), b = el.getBoundingClientRect(); return tor.scrollLeft + (b.left + b.width / 2) - (a.left + a.width / 2); }
-  function najblizszy(tor) {
-    var a = tor.getBoundingClientRect(), c = a.left + a.width / 2, ix = 0, dmin = Infinity;
-    [].forEach.call(tor.children, function (el, i) { var b = el.getBoundingClientRect(), dd = Math.abs(b.left + b.width / 2 - c); if (dd < dmin) { dmin = dd; ix = i; } });
-    return ix;
+  function pozycje(tor) { var a = tor.getBoundingClientRect(); return [].map.call(tor.children, function (el) { return tor.scrollLeft + el.getBoundingClientRect().left - a.left - (parseFloat(getComputedStyle(tor).paddingLeft) || 0); }); }
+  function najblizsza(tor) {
+    var max = tor.scrollWidth - tor.clientWidth, best = 0, dmin = Infinity;
+    pozycje(tor).forEach(function (x) { x = Math.max(0, Math.min(max, x)); var dd = Math.abs(x - tor.scrollLeft); if (dd < dmin) { dmin = dd; best = x; } });
+    return best;
   }
 
   /* przeciąganie myszą (galerie w kartach i tory poziome) */
@@ -50,8 +50,7 @@
       wcisniety = false;
       if (ruch) {
         tor.classList.remove('ciagnie');
-        var el = tor.children[najblizszy(tor)];
-        if (el) tor.scrollTo({ left: srodek(tor, el), behavior: plynnie() });
+        tor.scrollTo({ left: najblizsza(tor), behavior: plynnie() });
       }
     });
     tor.addEventListener('click', function (e) { if (ruch) { e.preventDefault(); e.stopPropagation(); ruch = false; } }, true);
@@ -85,73 +84,42 @@
     ciagnij(tor);
   });
 
-  /* tory poziome (ogródek, okolica): pas na całą szerokość okna, aktywne zdjęcie na środku, z obu stron równo
-     wystają sąsiednie. Pętla: kopie zdjęć przed i za (niewidoczne dla czytników), po zatrzymaniu przewijania
-     na kopii niezauważalny przeskok na to samo zdjęcie w oryginale. Strzałki (komputer), palec, mysz, klawiatura. */
+  /* tory poziome (ogródek, okolica): pas w szerokości treści, od zdjęcia 1, przewijanie w prawo i z powrotem.
+     Strzałki (komputer) przesuwają o jedno zdjęcie; na początku „wstecz”, na końcu „dalej” nieaktywne. */
   [].forEach.call(d.querySelectorAll('.tor-poziomy'), function (tor) {
-    var kafle = [].slice.call(tor.querySelectorAll('.kafel')), n = kafle.length;
-    kafle.forEach(function (k, i) { var s = d.createElement('span'); s.className = 'licznik'; s.textContent = (i + 1) + ' / ' + n; k.appendChild(s); });
-    if (n < 2) return;
+    var kafle = tor.querySelectorAll('.kafel'), n = kafle.length;
+    [].forEach.call(kafle, function (k, i) { var s = d.createElement('span'); s.className = 'licznik'; s.textContent = (i + 1) + ' / ' + n; k.appendChild(s); });
     var nav = d.createElement('div'); nav.className = 'tor-nav';
     nav.innerHTML = '<button type="button" class="strz-t" aria-label="Poprzednie zdjęcie">' + strzL + '</button><button type="button" class="strz-t" aria-label="Następne zdjęcie">' + strzP + '</button>';
     tor.parentNode.insertBefore(nav, tor);
     var b = nav.querySelectorAll('button');
-
-    /* kopie: tyle kompletów z każdej strony, żeby wypełnić szerokie okno (min. 1, maks. 3) */
-    function kopia(k) {
-      var c = k.cloneNode(true);
-      c.setAttribute('aria-hidden', 'true'); c.setAttribute('inert', ''); c.classList.add('kopia');
-      [].forEach.call(c.querySelectorAll('img'), function (im) { im.removeAttribute('fetchpriority'); im.alt = ''; });
-      return c;
+    var cel0 = null, dotyk = false;
+    function idz(kier) {
+      var max = tor.scrollWidth - tor.clientWidth, x = cel0 !== null ? cel0 : tor.scrollLeft, poz = pozycje(tor).map(function (v) { return Math.max(0, Math.min(max, v)); }), cel = x;
+      if (kier > 0) { for (var i = 0; i < poz.length; i++) if (poz[i] > x + 4) { cel = poz[i]; break; } }
+      else { for (var j = poz.length - 1; j >= 0; j--) if (poz[j] < x - 4) { cel = poz[j]; break; } }
+      cel0 = cel; tor.scrollTo({ left: cel, behavior: plynnie() });
     }
-    var szer = kafle.reduce(function (s, k) { return s + k.getBoundingClientRect().width; }, 0) || 1;
-    var komplety = Math.min(3, Math.max(1, Math.ceil(Math.max(window.innerWidth, 1200) / szer)));
-    for (var r = 0; r < komplety; r++) {
-      var pierwszy = tor.firstChild;
-      kafle.forEach(function (k) { tor.insertBefore(kopia(k), pierwszy); });
-      kafle.forEach(function (k) { tor.appendChild(kopia(k)); });
-    }
-    tor.classList.add('petla');
-    var start = komplety * n, akt = 0, dotyk = false, ruszony = false;
-    function realny(i) { return ((i - start) % n + n) % n; }
-    function wyrownaj() { if (!tor.children[start + akt]) return; tor.scrollLeft = srodek(tor, tor.children[start + akt]); }
-    function idz(o) { var i = najblizszy(tor) + o; i = Math.max(0, Math.min(tor.children.length - 1, i)); tor.scrollTo({ left: srodek(tor, tor.children[i]), behavior: plynnie() }); }
+    /* po zatrzymaniu: koniec serii kliknięć; dociągnięcie do krawędzi zdjęcia, gdyby przeglądarka nie dosnapowała */
     function koniec() {
+      cel0 = null;
       if (dotyk || tor.classList.contains('ciagnie')) return;
-      if (!ruszony) { wyrownaj(); return; } // przewinięcia przed pierwszym ruchem gościa (układ, content-visibility): zostaje pierwsze zdjęcie
-      var i = najblizszy(tor); akt = realny(i);
-      if (i !== start + akt) wyrownaj();
-      else { var x = srodek(tor, tor.children[i]); if (Math.abs(x - tor.scrollLeft) > 2) tor.scrollTo({ left: x, behavior: plynnie() }); } // dociągnięcie, gdy przeglądarka nie dosnapowała
+      var x = najblizsza(tor); if (Math.abs(x - tor.scrollLeft) > 2) tor.scrollTo({ left: x, behavior: plynnie() });
     }
-    /* podpis i licznik tylko na kaflach widocznych w całości (bez uciętych podpisów na brzegach) */
-    var rf = 0;
-    function czesci() {
-      rf = 0; var a = tor.getBoundingClientRect();
-      [].forEach.call(tor.children, function (k) { var r = k.getBoundingClientRect(); k.classList.toggle('czesc', r.left < a.left - 1 || r.right > a.right + 1); });
-    }
-    tor.addEventListener('scroll', function () { if (!rf) rf = requestAnimationFrame(czesci); }, { passive: true });
-    window.addEventListener('resize', function () { if (!rf) rf = requestAnimationFrame(czesci); });
-    wyrownaj(); czesci();
-    ['pointerdown', 'touchstart', 'wheel', 'keydown'].forEach(function (ev) { tor.addEventListener(ev, function () { ruszony = true; }, { passive: true }); });
-    nav.addEventListener('click', function () { ruszony = true; });
+    tor.addEventListener('touchstart', function () { dotyk = true; }, { passive: true });
+    tor.addEventListener('touchend', function () { dotyk = false; setTimeout(koniec, 400); }, { passive: true });
+    tor.addEventListener('touchcancel', function () { dotyk = false; }, { passive: true });
+    if ('onscrollend' in window) tor.addEventListener('scrollend', koniec);
+    else { var tk; tor.addEventListener('scroll', function () { clearTimeout(tk); tk = setTimeout(koniec, 180); }, { passive: true }); }
     b[0].addEventListener('click', function () { idz(-1); });
     b[1].addEventListener('click', function () { idz(1); });
     tor.addEventListener('keydown', function (e) {
       if (e.key === 'ArrowRight') { e.preventDefault(); idz(1); }
       if (e.key === 'ArrowLeft') { e.preventDefault(); idz(-1); }
     });
-    tor.addEventListener('touchstart', function () { dotyk = true; }, { passive: true });
-    tor.addEventListener('touchend', function () { dotyk = false; setTimeout(koniec, 400); }, { passive: true });
-    tor.addEventListener('touchcancel', function () { dotyk = false; }, { passive: true });
-    if ('onscrollend' in window) tor.addEventListener('scrollend', koniec);
-    else { var t; tor.addEventListener('scroll', function () { clearTimeout(t); t = setTimeout(koniec, 180); }, { passive: true }); }
-    var sz0 = window.innerWidth;
-    window.addEventListener('resize', function () { if (window.innerWidth !== sz0) { sz0 = window.innerWidth; wyrownaj(); } });
-    /* sekcje poniżej ekranu mają content-visibility: auto - wyrównanie jeszcze raz, gdy pas się pojawi */
-    if ('IntersectionObserver' in window) {
-      var io2 = new IntersectionObserver(function (en) { if (en[0].isIntersecting) { io2.disconnect(); wyrownaj(); czesci(); } }, { rootMargin: '200px 0px' });
-      io2.observe(tor);
-    }
+    function stan() { b[0].disabled = tor.scrollLeft < 4; b[1].disabled = tor.scrollLeft + tor.clientWidth > tor.scrollWidth - 4; }
+    tor.addEventListener('scroll', stan, { passive: true }); window.addEventListener('resize', stan); stan();
+    if ('IntersectionObserver' in window) { var io2 = new IntersectionObserver(function (en) { if (en[0].isIntersecting) { io2.disconnect(); stan(); } }); io2.observe(tor); }
   });
 
   /* formularz zapytania o turnus */
