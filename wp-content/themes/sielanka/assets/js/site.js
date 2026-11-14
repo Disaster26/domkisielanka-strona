@@ -23,6 +23,15 @@
   }
   if (linki.length) { window.addEventListener('scroll', aktywna, { passive: true }); aktywna(); }
 
+  /* pomocnicze do galerii: pozycja wyśrodkowania zdjęcia, zdjęcie najbliżej środka, płynność (bez przy reduced-motion) */
+  function plynnie() { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'; }
+  function srodek(tor, el) { var a = tor.getBoundingClientRect(), b = el.getBoundingClientRect(); return tor.scrollLeft + (b.left + b.width / 2) - (a.left + a.width / 2); }
+  function najblizszy(tor) {
+    var a = tor.getBoundingClientRect(), c = a.left + a.width / 2, ix = 0, dmin = Infinity;
+    [].forEach.call(tor.children, function (el, i) { var b = el.getBoundingClientRect(), dd = Math.abs(b.left + b.width / 2 - c); if (dd < dmin) { dmin = dd; ix = i; } });
+    return ix;
+  }
+
   /* przeciąganie myszą (galerie w kartach i tory poziome) */
   function ciagnij(tor) {
     var x0 = 0, s0 = 0, ruch = false, wcisniety = false;
@@ -41,8 +50,8 @@
       wcisniety = false;
       if (ruch) {
         tor.classList.remove('ciagnie');
-        var w = tor.firstElementChild ? tor.firstElementChild.getBoundingClientRect().width : tor.clientWidth;
-        tor.scrollTo({ left: Math.round(tor.scrollLeft / w) * w, behavior: 'smooth' });
+        var el = tor.children[najblizszy(tor)];
+        if (el) tor.scrollTo({ left: srodek(tor, el), behavior: plynnie() });
       }
     });
     tor.addEventListener('click', function (e) { if (ruch) { e.preventDefault(); e.stopPropagation(); ruch = false; } }, true);
@@ -76,19 +85,65 @@
     ciagnij(tor);
   });
 
-  /* strzałki do torów poziomych (komputer) */
+  /* tory poziome (ogródek, okolica): pas na całą szerokość okna, aktywne zdjęcie na środku, z obu stron równo
+     wystają sąsiednie. Pętla: kopie zdjęć przed i za (niewidoczne dla czytników), po zatrzymaniu przewijania
+     na kopii niezauważalny przeskok na to samo zdjęcie w oryginale. Strzałki (komputer), palec, mysz, klawiatura. */
   [].forEach.call(d.querySelectorAll('.tor-poziomy'), function (tor) {
-    var kafle = tor.querySelectorAll('.kafel');
-    [].forEach.call(kafle, function (k, i) { var s = d.createElement('span'); s.className = 'licznik'; s.textContent = (i + 1) + ' / ' + kafle.length; k.appendChild(s); });
+    var kafle = [].slice.call(tor.querySelectorAll('.kafel')), n = kafle.length;
+    kafle.forEach(function (k, i) { var s = d.createElement('span'); s.className = 'licznik'; s.textContent = (i + 1) + ' / ' + n; k.appendChild(s); });
+    if (n < 2) return;
     var nav = d.createElement('div'); nav.className = 'tor-nav';
-    nav.innerHTML = '<button type="button" class="strz-t" aria-label="Poprzednie zdjęcia">' + strzL + '</button><button type="button" class="strz-t" aria-label="Następne zdjęcia">' + strzP + '</button>';
+    nav.innerHTML = '<button type="button" class="strz-t" aria-label="Poprzednie zdjęcie">' + strzL + '</button><button type="button" class="strz-t" aria-label="Następne zdjęcie">' + strzP + '</button>';
     tor.parentNode.insertBefore(nav, tor);
     var b = nav.querySelectorAll('button');
-    function krok() { return Math.max(300, tor.clientWidth * 0.6); }
-    b[0].addEventListener('click', function () { tor.scrollBy({ left: -krok(), behavior: 'smooth' }); });
-    b[1].addEventListener('click', function () { tor.scrollBy({ left: krok(), behavior: 'smooth' }); });
-    function stan() { b[0].disabled = tor.scrollLeft < 8; b[1].disabled = tor.scrollLeft + tor.clientWidth > tor.scrollWidth - 8; }
-    tor.addEventListener('scroll', stan, { passive: true }); window.addEventListener('resize', stan); stan(); [].forEach.call(tor.querySelectorAll('img'), function (im) { im.addEventListener('load', stan); });
+
+    /* kopie: tyle kompletów z każdej strony, żeby wypełnić szerokie okno (min. 1, maks. 3) */
+    function kopia(k) {
+      var c = k.cloneNode(true);
+      c.setAttribute('aria-hidden', 'true'); c.setAttribute('inert', ''); c.classList.add('kopia');
+      [].forEach.call(c.querySelectorAll('img'), function (im) { im.removeAttribute('fetchpriority'); im.alt = ''; });
+      return c;
+    }
+    var szer = kafle.reduce(function (s, k) { return s + k.getBoundingClientRect().width; }, 0) || 1;
+    var komplety = Math.min(3, Math.max(1, Math.ceil(Math.max(window.innerWidth, 1200) / szer)));
+    for (var r = 0; r < komplety; r++) {
+      var pierwszy = tor.firstChild;
+      kafle.forEach(function (k) { tor.insertBefore(kopia(k), pierwszy); });
+      kafle.forEach(function (k) { tor.appendChild(kopia(k)); });
+    }
+    tor.classList.add('petla');
+    var start = komplety * n, akt = 0, dotyk = false, ruszony = false;
+    function realny(i) { return ((i - start) % n + n) % n; }
+    function wyrownaj() { if (!tor.children[start + akt]) return; tor.scrollLeft = srodek(tor, tor.children[start + akt]); }
+    function idz(o) { var i = najblizszy(tor) + o; i = Math.max(0, Math.min(tor.children.length - 1, i)); tor.scrollTo({ left: srodek(tor, tor.children[i]), behavior: plynnie() }); }
+    function koniec() {
+      if (dotyk || tor.classList.contains('ciagnie')) return;
+      if (!ruszony) { wyrownaj(); return; } // przewinięcia przed pierwszym ruchem gościa (układ, content-visibility): zostaje pierwsze zdjęcie
+      var i = najblizszy(tor); akt = realny(i);
+      if (i !== start + akt) wyrownaj();
+      else { var x = srodek(tor, tor.children[i]); if (Math.abs(x - tor.scrollLeft) > 2) tor.scrollTo({ left: x, behavior: plynnie() }); } // dociągnięcie, gdy przeglądarka nie dosnapowała
+    }
+    wyrownaj();
+    ['pointerdown', 'touchstart', 'wheel', 'keydown'].forEach(function (ev) { tor.addEventListener(ev, function () { ruszony = true; }, { passive: true }); });
+    nav.addEventListener('click', function () { ruszony = true; });
+    b[0].addEventListener('click', function () { idz(-1); });
+    b[1].addEventListener('click', function () { idz(1); });
+    tor.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight') { e.preventDefault(); idz(1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); idz(-1); }
+    });
+    tor.addEventListener('touchstart', function () { dotyk = true; }, { passive: true });
+    tor.addEventListener('touchend', function () { dotyk = false; setTimeout(koniec, 400); }, { passive: true });
+    tor.addEventListener('touchcancel', function () { dotyk = false; }, { passive: true });
+    if ('onscrollend' in window) tor.addEventListener('scrollend', koniec);
+    else { var t; tor.addEventListener('scroll', function () { clearTimeout(t); t = setTimeout(koniec, 180); }, { passive: true }); }
+    var sz0 = window.innerWidth;
+    window.addEventListener('resize', function () { if (window.innerWidth !== sz0) { sz0 = window.innerWidth; wyrownaj(); } });
+    /* sekcje poniżej ekranu mają content-visibility: auto - wyrównanie jeszcze raz, gdy pas się pojawi */
+    if ('IntersectionObserver' in window) {
+      var io2 = new IntersectionObserver(function (en) { if (en[0].isIntersecting) { io2.disconnect(); wyrownaj(); } }, { rootMargin: '200px 0px' });
+      io2.observe(tor);
+    }
   });
 
   /* formularz zapytania o turnus */
