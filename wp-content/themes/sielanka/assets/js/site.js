@@ -32,6 +32,30 @@
     return best;
   }
 
+  /* zdjęcia dalej w pasach i galeriach (data-src): wczytywane, gdy pas jest blisko ekranu i zdjęcie blisko widocznej części pasa */
+  function wczytaj(im) {
+    if (im.dataset.srcset) { im.srcset = im.dataset.srcset; im.removeAttribute('data-srcset'); }
+    if (im.dataset.src) { im.src = im.dataset.src; im.removeAttribute('data-src'); }
+  }
+  (function () {
+    var odl = [].slice.call(d.querySelectorAll('img[data-src]'));
+    if (!odl.length) return;
+    if (!('IntersectionObserver' in window)) { odl.forEach(wczytaj); return; }
+    var tory = [];
+    odl.forEach(function (im) { var t = im.closest('.tor, .tor-poziomy'); if (t && tory.indexOf(t) < 0) tory.push(t); });
+    var strona = new IntersectionObserver(function (en) {
+      en.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        strona.unobserve(e.target);
+        var t = e.target, wew = new IntersectionObserver(function (en2) {
+          en2.forEach(function (x) { if (x.isIntersecting) { wew.unobserve(x.target); wczytaj(x.target); } });
+        }, { root: t, rootMargin: '0px 60% 0px 60%' });
+        [].forEach.call(t.querySelectorAll('img[data-src]'), function (im) { if (im.closest('.tor, .tor-poziomy') === t) wew.observe(im); });
+      });
+    }, { rootMargin: '300px 0px' });
+    tory.forEach(function (t) { strona.observe(t); });
+  })();
+
   /* przeciąganie myszą (galerie w kartach i tory poziome) */
   function ciagnij(tor) {
     var x0 = 0, s0 = 0, ruch = false, wcisniety = false;
@@ -124,22 +148,23 @@
 
   /* powiększanie zdjęć (lightbox): kliknięcie / stuknięcie zdjęcia w pasach i galeriach; okno budowane dopiero przy pierwszym otwarciu.
      Przeciągnięcie pasa nie otwiera (ciagnij() blokuje wtedy kliknięcie). */
-  var LB = null, lbLista = [], lbIx = 0, lbPowrot = null, lbKier = 1;
+  var LB = null, lbLista = [], lbIx = 0, lbPowrot = null, lbKier = 1, lbPob = null, lbCzas = 0;
   var SEL_ZDJ = '.tor-poziomy .kafel, .galeria .tor > img';
   function lbElementy(el) {
     var tor = el.closest('.tor-poziomy, .tor');
     return [].slice.call(tor.querySelectorAll(tor.classList.contains('tor') ? ':scope > img' : ':scope > .kafel'));
   }
-  /* największy potrzebny plik: szerokość okna podglądu x gęstość ekranu (srcset + duże warianty data-duze, maks. 2560 px) */
+  /* plik do powiększenia: najmniejszy wystarczający dla okna podglądu x gęstość ekranu (maks. 1600 px), z srcset + data-duze */
   function lbDane(el) {
-    var im = el.tagName === 'IMG' ? el : el.querySelector('img'), fc = el.tagName === 'IMG' ? null : el.querySelector('figcaption'), big = im.currentSrc || im.src;
+    var im = el.tagName === 'IMG' ? el : el.querySelector('img'), fc = el.tagName === 'IMG' ? null : el.querySelector('figcaption');
     var ar = (+im.getAttribute('width') || 4) / (+im.getAttribute('height') || 3);
-    var cel = Math.min(2560, Math.min(window.innerWidth - 32, (window.innerHeight - 140) * ar, 1400) * (window.devicePixelRatio || 1));
+    var cel = Math.min(window.innerWidth - 32, (window.innerHeight - 140) * ar, 1400) * Math.min(window.devicePixelRatio || 1, 2);
     var lista = [];
-    ((im.getAttribute('srcset') || '') + ',' + (im.getAttribute('data-duze') || '')).split(',').forEach(function (c) { var cz = c.trim().split(/\s+/), w = parseInt(cz[1], 10) || 0; if (cz[0] && w) lista.push([w, cz[0]]); });
+    ((im.getAttribute('srcset') || im.getAttribute('data-srcset') || '') + ',' + (im.getAttribute('data-duze') || '')).split(',').forEach(function (c) { var cz = c.trim().split(/\s+/), w = parseInt(cz[1], 10) || 0; if (cz[0] && w) lista.push([w, cz[0]]); });
     lista.sort(function (x, y) { return x[0] - y[0]; });
-    for (var i = 0; i < lista.length; i++) { big = lista[i][1]; if (lista[i][0] >= cel * 0.9) break; }
-    return { maxw: lista.length ? lista[lista.length - 1][0] : 0, maly: im.currentSrc || im.src, duzy: big, alt: im.alt || '', podpis: fc ? fc.textContent : (im.alt || ''), w: im.getAttribute('width'), h: im.getAttribute('height') };
+    var big = im.currentSrc || im.getAttribute('src') || (lista.length ? lista[lista.length - 1][1] : '');
+    for (var i = 0; i < lista.length; i++) { big = lista[i][1]; if (lista[i][0] >= cel * 0.85) break; }
+    return { maxw: lista.length ? lista[lista.length - 1][0] : 0, maly: im.currentSrc || big, duzy: big, alt: im.alt || '', podpis: fc ? fc.textContent : (im.alt || ''), w: im.getAttribute('width'), h: im.getAttribute('height') };
   }
   function lbZbuduj() {
     LB = d.createElement('div'); LB.className = 'lb'; LB.hidden = true;
@@ -183,8 +208,23 @@
     img.src = z.maly; img.alt = z.alt; if (z.w) { img.width = z.w; img.height = z.h; }
     img.dataset.maxw = z.maxw || +z.w || 0;
     lbRozmiar();
-    if (z.duzy !== z.maly) { var pre = new Image(), ix = lbIx; pre.onload = function () { if (ix === lbIx) img.src = z.duzy; }; pre.src = z.duzy; }
-    if (n > 1) { var nast = lbDane(lbLista[(lbIx + lbKier + n) % n]); if (nast.duzy !== nast.maly) (new Image()).src = nast.duzy; } // z wyprzedzeniem tylko 1 sąsiednie
+    /* od razu to, co już jest (plik z karty); większy dopiero po chwili bez klikania, nieaktualne pobieranie przerwane */
+    clearTimeout(lbCzas);
+    if (lbPob) { lbPob.onload = null; lbPob.src = ''; lbPob = null; }
+    var ix = lbIx;
+    function sasiad() { // tylko 1 następne, gdy obecne gotowe i przeglądarka bezczynna
+      if (n < 2) return;
+      var f = function () { if (ix !== lbIx || LB.hidden) return; var nz = lbDane(lbLista[(lbIx + lbKier + n) % n]); (new Image()).src = nz.duzy; };
+      if (window.requestIdleCallback) requestIdleCallback(f, { timeout: 2000 }); else setTimeout(f, 300);
+    }
+    if (z.duzy !== img.getAttribute('src')) {
+      lbCzas = setTimeout(function () {
+        if (ix !== lbIx) return;
+        lbPob = new Image();
+        lbPob.onload = function () { if (ix === lbIx) img.src = z.duzy; lbPob = null; sasiad(); };
+        lbPob.src = z.duzy;
+      }, 180);
+    } else if (img.complete) sasiad(); else img.addEventListener('load', sasiad, { once: true });
     LB.querySelector('.lb-tekst').textContent = z.podpis;
     LB.querySelector('.lb-licz').textContent = (lbIx + 1) + ' / ' + n;
     LB.querySelector('.lb-l').hidden = LB.querySelector('.lb-p').hidden = n < 2;
